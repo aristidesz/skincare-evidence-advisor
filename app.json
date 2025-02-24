@@ -1,0 +1,9 @@
+{
+    "name": "streamlit_chat",
+    "description": "Streamlit App Boilerplate that contains everything you need to get running.",
+    "repository": "https://github.com/aristidesz/streamlit_chat",
+    "keywords": [
+        "streamlit",
+        "python"
+    ]
+}
