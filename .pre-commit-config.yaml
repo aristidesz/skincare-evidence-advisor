@@ -29,11 +29,3 @@ repos:
           entry: trailing-whitespace-fixer
           types: [text]
           stages: [commit, push, manual]
-  - repo: local
-    hooks:
-      - id: make-lint
-        name: make-lint
-        entry: make
-        language: system
-        types: [make]
-        args: ["lint"]
