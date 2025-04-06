@@ -27,9 +27,17 @@ dev = [
 ]
 
 [tool.black]
-target-version = ['py39']
 exclude = '''
-/(\.git | \.cache | \.pytest_cache | venv | coverage)/
+/(
+    \.venv
+    | venv
+    | build
+    | dist
+    | \.git
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.tox
+)/
 '''
 
 [tool.isort]
