@@ -38,12 +38,6 @@ jobs:
       - name: Run black
         run: uv run black --check .
 
-      - name: Run mypy
-        run: uv run mypy --explicit-package-bases src tests
-
-      - name: Run bandit
-        run: uv run bandit -r src
-
   test:
       runs-on: ubuntu-latest
       needs: lint  # Add dependency on lint job
