@@ -29,6 +29,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          uv venv
           uv pip install -e ".[lint]"
 
       - name: Run flake8
@@ -52,7 +53,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.12'
+          python-version: '3.11.8'
 
       - name: Install uv
         run: |
@@ -60,6 +61,7 @@ jobs:
 
       - name: Install dependencies
         run: |
+          uv venv
           uv pip install -e ".[test]"
 
       - name: Run tests
