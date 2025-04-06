@@ -40,3 +40,8 @@ exclude_lines = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+
+[dependency-groups]
+dev = [
+    "seleniumbase>=4.35.2",
+]
