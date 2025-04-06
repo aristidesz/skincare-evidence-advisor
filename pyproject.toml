@@ -2,6 +2,7 @@
 name = "streamlit_chat"
 version = "0.1.0"
 description = "A Streamlit chat application"
+requires-python = ">=3.9"
 authors = [
     { name = "Aristides Zenonos", email = "aristideszenonos@gmail.com" }
 ]
