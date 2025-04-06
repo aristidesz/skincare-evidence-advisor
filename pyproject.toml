@@ -7,11 +7,28 @@ authors = [
 ]
 dependencies = [
     "streamlit",
+]
+
+[project.optional-dependencies]
+test = [
     "pytest",
+    "coverage",
+    "seleniumbase>=4.35.2",
+]
+lint = [
     "black",
     "isort",
-    "flake8"
+    "flake8",
+    "mypy",
+    "bandit",
 ]
+dev = [
+    "streamlit_chat[test,lint]",
+]
+
+[build-system]
+requires = ["uv"]
+build-backend = "uv.build"
 
 [tool.black]
 target-version = ['py39']
