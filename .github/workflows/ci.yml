@@ -62,7 +62,7 @@ jobs:
 
         - name: Run tests
           run: |
-            uv run coverage run -m pytest
+            uv run coverage run --source=tests -m pytest
             uv run coverage report
             uv run coverage xml
 
