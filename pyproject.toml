@@ -26,10 +26,6 @@ dev = [
     "streamlit_chat[test,lint]",
 ]
 
-[build-system]
-requires = ["uv"]
-build-backend = "uv.build"
-
 [tool.black]
 target-version = ['py39']
 exclude = '''
