@@ -2,21 +2,43 @@
 name = "streamlit_chat"
 version = "0.1.0"
 description = "A Streamlit chat application"
+requires-python = ">=3.9"
 authors = [
     { name = "Aristides Zenonos", email = "aristideszenonos@gmail.com" }
 ]
 dependencies = [
     "streamlit",
+]
+
+[project.optional-dependencies]
+test = [
     "pytest",
+    "coverage",
+    "seleniumbase>=4.35.2",
+]
+lint = [
     "black",
     "isort",
-    "flake8"
+    "flake8",
+    "mypy",
+    "bandit",
+]
+dev = [
+    "streamlit_chat[test,lint]",
 ]
 
 [tool.black]
-target-version = ['py39']
 exclude = '''
-/(\.git | \.cache | \.pytest_cache | venv | coverage)/
+/(
+    \.venv
+    | venv
+    | build
+    | dist
+    | \.git
+    | \.mypy_cache
+    | \.pytest_cache
+    | \.tox
+)/
 '''
 
 [tool.isort]
@@ -40,3 +62,8 @@ exclude_lines = [
 
 [tool.pytest.ini_options]
 minversion = "6.0"
+
+[dependency-groups]
+dev = [
+    "seleniumbase>=4.35.2",
+]
