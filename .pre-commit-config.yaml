@@ -23,12 +23,12 @@ repos:
           name: Fix End of Files
           entry: end-of-file-fixer
           types: [text]
-          stages: [commit, push, manual]
+          stages: [pre-commit, pre-push, manual]
         - id: trailing-whitespace
           name: Trim Trailing Whitespace
           entry: trailing-whitespace-fixer
           types: [text]
-          stages: [commit, push, manual]
+          stages: [pre-commit, pre-push, manual]
   - repo: https://github.com/pre-commit/mirrors-isort
     rev: v5.10.1  # Use the latest version or the version you need
     hooks:
