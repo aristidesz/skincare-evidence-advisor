@@ -1,6 +1,6 @@
 import streamlit as st
 
-from views.chat import chat_view
+from src.views.chat import chat_view
 
 st.header("Simple Chat App")
 # st.title("Simple chat")
