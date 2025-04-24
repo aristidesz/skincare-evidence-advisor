@@ -26,7 +26,7 @@ def chat_view():
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         # response = st.write_stream(response_generator())
-        response = response_generator_llm()
+        response = response_generator_llm(st.session_state.messages)
         st.write(response)
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})
