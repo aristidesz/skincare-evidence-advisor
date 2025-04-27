@@ -73,8 +73,12 @@ minversion = "6.0"
 
 [dependency-groups]
 dev = [
+    "fuzzywuzzy>=0.18.0",
     "ipykernel>=6.29.5",
+    "kaggle>=1.7.4.2",
+    "kagglehub>=0.3.12",
     "pre-commit>=4.2.0",
+    "python-levenshtein>=0.27.1",
     "seleniumbase>=4.35.2",
 ]
 
