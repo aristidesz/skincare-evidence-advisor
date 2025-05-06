@@ -48,6 +48,7 @@ class VectorStoreManager:
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=chunk_size, chunk_overlap=chunk_overlap, add_start_index=True
         )
+        # Initialise FAISS dimension using a dynamic query
         self.embedding_dim = len(self.embeddings.embed_query("test"))
         self.index = faiss.IndexFlatL2(self.embedding_dim)
         self.vector_store = FAISS(
@@ -90,7 +91,7 @@ class VectorStoreManager:
         Generate a response using the LLM based on the query and retrieved context.
         """
         # Retrieve relevant documents
-        retrieved_docs = self.similarity_search(query, k=1)
+        retrieved_docs = self.similarity_search(query, k=5)
 
         # Combine the content of the retrieved documents
         context = "\n\n".join(doc.page_content for doc in retrieved_docs)
@@ -104,7 +105,6 @@ class VectorStoreManager:
         return response
 
 
-# Example usage
 if __name__ == "__main__":
     # Initialize the VectorStoreManager
     vector_store_manager = VectorStoreManager()
@@ -112,11 +112,11 @@ if __name__ == "__main__":
     # Example documents
     docs = [
         vector_store_manager.create_document(
-            text="Dogs are great companions, known for their loyalty and friendliness.",
+            text="My name is Aristides and I am 34 years old.",
             metadata={"source": "mammal-pets-doc"},
         ),
         vector_store_manager.create_document(
-            text="Cats are independent pets that often enjoy their own space.",
+            text="His postcode is E15.",
             metadata={"source": "mammal-pets-doc"},
         ),
     ]
@@ -124,7 +124,6 @@ if __name__ == "__main__":
     # Add documents to the vector store
     vector_store_manager.add_documents(docs)
 
-    # Example query
-    query = "Percentage of Nike and Converse in Fiscal year 2023 for Non-US out of total revenue?"
+    query = "What is the age of Aristides and what is his postcode address?"
     response = vector_store_manager.generate_response(query)
     print(response)
