@@ -2,8 +2,8 @@ import json
 import os
 from typing import List
 
+import kagglehub
 import pandas as pd
-from kaggle.api.kaggle_api_extended import KaggleApi
 from rapidfuzz import fuzz, process
 from tqdm import tqdm
 
@@ -17,7 +17,6 @@ class ArticleManager:
 
     Attributes:
         dataset_slug (str): The Kaggle dataset slug.
-        api (KaggleApi): An instance of the Kaggle API for interacting with Kaggle datasets.
         navigator_df (pd.DataFrame): A DataFrame containing the article metadata.
     """
 
@@ -31,8 +30,6 @@ class ArticleManager:
         """
         self.dataset_slug = dataset_slug
         self.article_slug = article_slug
-        self.api = KaggleApi()
-        self.api.authenticate()
         self.navigator_df = None
         self.download_dir = "./data/"
 
@@ -43,11 +40,7 @@ class ArticleManager:
         Args:
             file_name (str): The name of the navigator file in the dataset.
         """
-
-        self.api.dataset_download_file(
-            self.dataset_slug, file_name, path=self.download_dir
-        )
-        file_path = os.path.join(self.download_dir, file_name)
+        file_path = kagglehub.dataset_download(self.dataset_slug, path=file_name)
         if not os.path.exists(file_path):
             raise FileNotFoundError(
                 f"Failed to download {file_name} from {self.dataset_slug}"
@@ -116,26 +109,29 @@ class ArticleManager:
         Returns:
             str: The processed text content of the article.
         """
+        # Ensure the file_name is correct and does not duplicate the directory structure
+        if not file_name.startswith("enwiki_namespace_0/"):
+            file_name = f"enwiki_namespace_0/{file_name}"
 
-        "wikimedia-foundation/wikipedia-structured-contents"
-        "enwiki_namespace_0/enwiki_namespace_0_31.jsonl"
-
-        "wikimedia-foundation/wikipedia-structured-contents"
-        "enwiki_namespace_0/enwiki_namespace_0_31.jsonl"
-
-        file_name = f"enwiki_namespace_0/{file_name}"
-        self.api.dataset_download_file(
-            self.article_slug, file_name, path=self.download_dir
-        )
-        file_path = os.path.join(self.download_dir, file_name)
-        if not os.path.exists(file_path):
+        # Download the article file using kagglehub
+        try:
+            file_path = kagglehub.dataset_download(self.article_slug, path=file_name)
+        except Exception as e:
             raise FileNotFoundError(
-                f"Failed to download {file_name} from {self.article_slug}"
+                f"Failed to download {file_name} from {self.article_slug}. Error: {e}"
             )
-        file_path = os.path.join(self.download_dir, file_name)
-        article_df = self._load_jsonl(file_path)
-        # os.remove(file_path)  # Clean up the downloaded file
 
+        # Check if the file exists
+        if not os.path.exists(file_path):
+            raise FileNotFoundError(f"File {file_name} was not found at {file_path}.")
+
+        # Load the JSONL file into a DataFrame
+        article_df = self._load_jsonl(file_path)
+
+        # Clean up the downloaded file
+        # os.remove(file_path)
+
+        # Extract the specific article
         article_row = article_df.iloc[file_index]
         return self._build_text(article_row)
 
@@ -176,7 +172,7 @@ class ArticleManager:
         documents = []
         for result in search_results:
             index = result["index"]
-            file_name = self.navigator_df.iloc[index]["file_name"]  # .strip(".jsonl")
+            file_name = self.navigator_df.iloc[index]["file_name"]
             file_index = self.navigator_df.iloc[index]["file_index"]
             text = self.fetch_article(file_name, file_index)
             documents.append(
