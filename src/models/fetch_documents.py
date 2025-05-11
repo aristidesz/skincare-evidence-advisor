@@ -7,6 +7,9 @@ import pandas as pd
 from rapidfuzz import fuzz, process
 from tqdm import tqdm
 
+DATASET_SLUG = "mehranism/wikimedia-structured-dataset-navigator-jsonl"
+ARTICLE_SLUG = "wikimedia-foundation/wikipedia-structured-contents"
+
 
 class ArticleManager:
     """
@@ -186,9 +189,7 @@ class ArticleManager:
 
 if __name__ == "__main__":
     # Initialize the ArticleManager
-    dataset_slug = "mehranism/wikimedia-structured-dataset-navigator-jsonl"
-    article_slug = "wikimedia-foundation/wikipedia-structured-contents"
-    article_manager = ArticleManager(dataset_slug, article_slug)
+    article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
 
     # Load the navigator file
     navigator_file_name = "wiki_structured_dataset_navigator.jsonl"

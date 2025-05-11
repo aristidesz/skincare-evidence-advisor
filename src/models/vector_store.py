@@ -8,6 +8,8 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
+from src.models.fetch_documents import ARTICLE_SLUG, DATASET_SLUG, ArticleManager
+
 
 class VectorStoreManager:
     """
@@ -108,6 +110,28 @@ class VectorStoreManager:
 if __name__ == "__main__":
     # Initialize the VectorStoreManager
     vector_store_manager = VectorStoreManager()
+
+    article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
+
+    # Load the navigator file
+    navigator_file_name = "wiki_structured_dataset_navigator.jsonl"
+    article_manager.load_navigator(navigator_file_name)
+
+    # Search for articles and create documents
+    query = "Shawshank Redemption"
+    documents_retrieved = article_manager.prepare_documents(query, limit=3)
+
+    # Documents to be added to the vector store
+    docs = []
+    for doc in documents_retrieved:
+        new_doc = vector_store_manager.create_document(
+            text=doc["text"],
+            metadata={
+                "name": doc["metadata"]["name"],
+                "score": doc["metadata"]["score"],
+            },
+        )
+        docs.append(new_doc)
 
     # Example documents
     docs = [
