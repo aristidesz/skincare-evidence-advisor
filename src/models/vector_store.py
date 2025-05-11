@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import List
 
@@ -10,6 +11,9 @@ from langchain_ollama.llms import OllamaLLM
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from src.models.fetch_documents import ARTICLE_SLUG, DATASET_SLUG, ArticleManager
+from src.models.utils import document_exists_by_hash, get_text_hash
+
+logging.basicConfig(level=logging.INFO)
 
 
 class VectorStoreManager:
@@ -109,6 +113,7 @@ class VectorStoreManager:
         """
         if metadata is None:
             metadata = {}
+        logging.info("Creating document...")
         return Document(page_content=text, metadata=metadata)
 
     def add_documents(self, documents: List[Document]):
@@ -116,7 +121,13 @@ class VectorStoreManager:
         Add documents to the vector store after splitting them into chunks.
         """
         chunks = self.text_splitter.split_documents(documents)
-        self.vector_store.add_documents(chunks)
+        for chunk in chunks:
+            text_hash = get_text_hash(chunk.page_content)
+            if document_exists_by_hash(self, text_hash):
+                logging.info("Documents already in vectore store.")
+            else:
+                self.vector_store.add_documents(chunks)
+                logging.info("Successfully created a new document.")
 
     def similarity_search(self, query: str, k: int = 1) -> List[Document]:
         """
@@ -155,57 +166,52 @@ if __name__ == "__main__":
 
     # Initialize the VectorStoreManager, attempting to load if path exists
     vector_store_manager = VectorStoreManager(save_path=vector_store_save_path)
-    # Check if the vector store is newly initialized
-    is_newly_initialized = not (
-        os.path.exists(vector_store_save_path)
-        and os.path.exists(os.path.join(vector_store_save_path, "index.faiss"))
+
+    print("Populating the vector store with initial data...")
+    article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
+    navigator_file_name = "wiki_structured_dataset_navigator.jsonl"
+    article_manager.load_navigator(navigator_file_name)
+    query_topic = "Shawshank Redemption"
+    documents_retrieved = article_manager.prepare_documents(
+        query_topic, limit=2
+    )  # Fetch a few docs
+
+    docs_to_add = []
+    if documents_retrieved:
+        for doc_data in documents_retrieved:
+            new_doc = vector_store_manager.create_document(
+                text=doc_data["text"],
+                metadata={
+                    "name": doc_data["metadata"]["name"],
+                    "score": doc_data["metadata"]["score"],
+                    "source": doc_data["metadata"].get("source", "N/A"),
+                    "hash_key": get_text_hash(doc_data["text"]),
+                },
+            )
+            docs_to_add.append(new_doc)
+    else:
+        print(f"No documents retrieved for query: {query_topic}")
+
+    # Add some example documents as well, or instead of article manager if it fails
+    docs_to_add.extend(
+        [
+            vector_store_manager.create_document(
+                text="Aristides is 34 years old and his postcode is E15.",
+                metadata={"source": "personal-info-doc"},
+            ),
+            vector_store_manager.create_document(
+                text="The FAISS library allows for efficient similarity search.",
+                metadata={"source": "tech-doc"},
+            ),
+        ]
     )
 
-    if is_newly_initialized:
-        print("Populating the vector store with initial data...")
-        article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
-        navigator_file_name = "wiki_structured_dataset_navigator.jsonl"
-        article_manager.load_navigator(navigator_file_name)
-        query_topic = "Shawshank Redemption"
-        documents_retrieved = article_manager.prepare_documents(
-            query_topic, limit=2
-        )  # Fetch a few docs
-
-        docs_to_add = []
-        if documents_retrieved:
-            for doc_data in documents_retrieved:
-                new_doc = vector_store_manager.create_document(
-                    text=doc_data["text"],
-                    metadata={
-                        "name": doc_data["metadata"]["name"],
-                        "score": doc_data["metadata"]["score"],
-                        "source_file": doc_data["metadata"].get("source_file", "N/A"),
-                    },
-                )
-                docs_to_add.append(new_doc)
-        else:
-            print(f"No documents retrieved for query: {query_topic}")
-
-        # Add some example documents as well, or instead of article manager if it fails
-        docs_to_add.extend(
-            [
-                vector_store_manager.create_document(
-                    text="Aristides is 34 years old and his postcode is E15.",
-                    metadata={"source": "personal-info-doc"},
-                ),
-                vector_store_manager.create_document(
-                    text="The FAISS library allows for efficient similarity search.",
-                    metadata={"source": "tech-doc"},
-                ),
-            ]
-        )
-
-        if docs_to_add:
-            vector_store_manager.add_documents(docs_to_add)
-            # Save the store after populating
-            vector_store_manager.save()
-        else:
-            print("No documents were prepared to be added to the vector store.")
+    if docs_to_add:
+        vector_store_manager.add_documents(docs_to_add)
+        # Save the store after populating
+        vector_store_manager.save()
+    else:
+        print("No documents were prepared to be added to the vector store.")
 
     # Now, perform a query
     query = "What is the age of Aristides and what is his postcode address?"
