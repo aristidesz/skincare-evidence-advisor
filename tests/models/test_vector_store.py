@@ -53,11 +53,23 @@ def test_add_document_returns_true(dummy_document):
 
 
 def test_generate_response_llm_mocked():
-    with patch("src.models.vector_store.OllamaLLM") as MockLLM:
+    with (
+        patch("src.models.vector_store.OllamaEmbeddings") as MockEmbeddings,
+        patch("src.models.vector_store.OllamaLLM") as MockLLM,
+    ):
+        embedding_dim = 384
+        MockEmbeddings.return_value.embed_query.return_value = [0.1] * embedding_dim
+        MockEmbeddings.return_value.embed_documents.side_effect = lambda texts: [
+            [0.1] * embedding_dim for _ in texts
+        ]
         mock_llm_instance = MagicMock()
         mock_llm_instance.invoke.return_value = "Mocked LLM response"
         MockLLM.return_value = mock_llm_instance
 
         manager = VectorStoreManager()
+        # Optionally patch similarity_search if you want to avoid vector store logic
+        manager.similarity_search = MagicMock(
+            return_value=[Document(page_content="Some context", metadata={})]
+        )
         response = manager.generate_response("What is the age of Aristides?")
         assert response == "Mocked LLM response"
