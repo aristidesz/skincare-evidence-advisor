@@ -131,3 +131,8 @@ dmypy.json
 .vscode/
 
 .DS_Store
+
+# Ignore Notebooks
+notebooks/future_steps.ipynb
+
+data/
