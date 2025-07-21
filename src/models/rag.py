@@ -1,7 +1,6 @@
 import logging
 
-from src.models.fetch_documents import ARTICLE_SLUG, DATASET_SLUG, ArticleManager
-from src.models.utils import get_text_hash
+from src.models.utils import get_nth_from_last_ai_user_prompt
 from src.models.vector_store import VectorStoreManager
 
 logging.basicConfig(level=logging.INFO)
@@ -19,64 +18,18 @@ def get_response_from_rag(query_topic: str):
     """
 
     # Define a path for saving and loading the vector store
-    vector_store_save_path = "./data/my_faiss_vector_store"
+    vector_store_save_path = "./data/my_faiss_vector_store_v3"
 
     # Initialize the VectorStoreManager, attempting to load if path exists
-    vector_store_manager = VectorStoreManager(save_path=vector_store_save_path)
-
-    print("Populating the vector store with initial data...")
-    article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
-    navigator_file_name = "wiki_structured_dataset_navigator.jsonl"
-    article_manager.load_navigator(navigator_file_name)
-    # query_topic = "Shawshank Redemption"
-    documents_retrieved = article_manager.prepare_documents(
-        query_topic, limit=2
-    )  # Fetch a few docs
-
-    docs_to_add = []
-    if documents_retrieved:
-        for doc_data in documents_retrieved:
-            new_doc = vector_store_manager.create_document(
-                text=doc_data["text"],
-                metadata={
-                    "name": doc_data["metadata"]["name"],
-                    "score": doc_data["metadata"]["score"],
-                    "source": doc_data["metadata"].get("source", "N/A"),
-                    "hash_key": get_text_hash(doc_data["text"]),
-                },
-            )
-            docs_to_add.append(new_doc)
-    else:
-        print(f"No documents retrieved for query: {query_topic}")
-
-    # Add some example documents as well, or instead of article manager if it fails
-    docs_to_add.extend(
-        [
-            vector_store_manager.create_document(
-                text="Aristides is 34 years old and his postcode is E15.",
-                metadata={"source": "personal-info-doc"},
-            ),
-            vector_store_manager.create_document(
-                text="The FAISS library allows for efficient similarity search.",
-                metadata={"source": "tech-doc"},
-            ),
-        ]
+    vector_store_manager = VectorStoreManager(
+        save_path=vector_store_save_path, embedding_model="nomic-embed-text"
     )
+    # query = "What is the age of Aristides and what is his postcode address?"
+    last_question = get_nth_from_last_ai_user_prompt(query_topic)
+    retrieve_context = vector_store_manager.retrieve_context(last_question, k=1)
+    # Format the input for the LLM
+    prompt = f"Context:\n{retrieve_context}\n\nQuestion:\n{query_topic}\n\nAnswer:"
+    # Generate a response using the LLM
+    response = vector_store_manager.llm.invoke(prompt)
 
-    if docs_to_add:
-        vector_store_manager.add_documents(docs_to_add)
-        # Save the store after populating
-        vector_store_manager.save()
-    else:
-        print("No documents were prepared to be added to the vector store.")
-
-    # Now, perform a query
-    query = "What is the age of Aristides and what is his postcode address?"
-    response = vector_store_manager.generate_response(query)
-    print(f"\nQuery: {query}")
-    print(f"Response: {response}")
-
-    query2 = "What did the Congress say about Shawshank Redemption?"
-    response2 = vector_store_manager.generate_response(query2)
-    print(f"\nQuery: {query2}")
-    print(f"Response: {response2}")
+    return response
