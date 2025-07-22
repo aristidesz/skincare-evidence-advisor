@@ -27,3 +27,23 @@ def document_exists(vector_store_manager, unique_id: str) -> bool:
         if doc.metadata.get("hash_key") == unique_id:
             return True
     return False
+
+
+def get_nth_from_last_ai_user_prompt(
+    prompt_messages: str, n: int = 1, role: str = "Human"
+) -> str:
+    """
+    Returns the nth AI or user prompt from the end of the conversation history.
+
+    Args:
+        prompt_messages (str): The conversation history as a string.
+        n (int): The index from the end (1-based, 1 = last).
+        role (str): The role of the prompt ('user' or 'assistant').
+    Returns:
+        str: The nth prompt from the specified role, counting from the end.
+    """
+    messages = [m for m in prompt_messages.split("\n") if m.startswith(role + ":")]
+    if n <= len(messages):
+        return messages[-n][len(role) + 1 :]
+    else:
+        return ""

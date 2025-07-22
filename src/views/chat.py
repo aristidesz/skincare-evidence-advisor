@@ -1,6 +1,6 @@
 import streamlit as st
 
-from src.models.responses import response_generator_llm
+from src.models.responses import response_generator_llm, response_generator_rag
 
 
 def chat_view():
@@ -26,7 +26,11 @@ def chat_view():
     # Display assistant response in chat message container
     with st.chat_message("assistant"):
         # response = st.write_stream(response_generator())
-        response = response_generator_llm(st.session_state.messages)
+        flag_rag = True
+        if flag_rag:
+            response = response_generator_rag(st.session_state.messages)
+        else:
+            response = response_generator_llm(st.session_state.messages)
         st.write(response)
     # Add assistant response to chat history
     st.session_state.messages.append({"role": "assistant", "content": response})

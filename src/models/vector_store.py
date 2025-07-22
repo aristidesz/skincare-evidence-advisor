@@ -141,19 +141,25 @@ class VectorStoreManager:
         """
         return self.vector_store.similarity_search_with_score(query, k=k)
 
-    def generate_response(self, query: str) -> str:
+    def retrieve_context(self, query: str, k: int = 5) -> str:
         """
         Generate a response using the LLM based on the query and retrieved context.
         """
         # Retrieve relevant documents
-        retrieved_docs = self.similarity_search(query, k=5)
+        retrieved_docs = self.similarity_search(query, k=k)
 
         # Combine the content of the retrieved documents
         context = "\n\n".join(doc.page_content for doc in retrieved_docs)
 
-        # Format the input for the LLM
-        prompt = f"Context:\n{context}\n\nQuestion:\n{query}\n\nAnswer:"
+        return context
 
+    def generate_response(self, query: str) -> str:
+        """
+        Generate a response using the LLM based on the query and retrieved context.
+        """
+        retrieve_context = self.retrieve_context(query)
+        # Format the input for the LLM
+        prompt = f"Context:\n{retrieve_context}\n\nQuestion:\n{query}\n\nAnswer:"
         # Generate a response using the LLM
         response = self.llm.invoke(prompt)
 
@@ -162,10 +168,12 @@ class VectorStoreManager:
 
 if __name__ == "__main__":
     # Define a path for saving and loading the vector store
-    vector_store_save_path = "./data/my_faiss_vector_store"
+    vector_store_save_path = "./data/my_faiss_vector_store_v3"
 
     # Initialize the VectorStoreManager, attempting to load if path exists
-    vector_store_manager = VectorStoreManager(save_path=vector_store_save_path)
+    vector_store_manager = VectorStoreManager(
+        save_path=vector_store_save_path, embedding_model="nomic-embed-text"
+    )
 
     print("Populating the vector store with initial data...")
     article_manager = ArticleManager(DATASET_SLUG, ARTICLE_SLUG)
