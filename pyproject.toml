@@ -1,7 +1,7 @@
 [project]
-name = "streamlit_chat"
+name = "skincare-evidence-advisor"
 version = "0.1.0"
-description = "A Streamlit chat application"
+description = "Evidence-based skincare advisor: answers from clinical studies, not marketing"
 requires-python = ">=3.9"
 authors = [
     { name = "Aristides Zenonos", email = "aristideszenonos@gmail.com" }
@@ -41,7 +41,7 @@ lint = [
     "bandit",
 ]
 dev = [
-    "streamlit_chat[ingest,test,lint]",
+    "skincare-evidence-advisor[ingest,test,lint]",
 ]
 
 [tool.black]
