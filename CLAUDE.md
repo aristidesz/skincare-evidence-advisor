@@ -23,6 +23,7 @@ After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14
 - `src/models/responses.py`: system prompt + `build_messages` + `response_generator_llm`.
 - `src/views/chat.py`: the chat UI (history in `st.session_state`, one reply per user message).
 - `src/tools/studies.py`: `search_studies` on Europe PMC plus its tool schema `SEARCH_STUDIES_TOOL`. Not yet called by the model.
+- `src/mcp_server.py`: the same tool as an MCP server (`mcp` 2.x, Streamable HTTP on port 7860, stateless).
 - `src/models/rag.py`, `vector_store.py`, `fetch_documents.py`: legacy Wikipedia RAG. Unused, and due to be replaced by the clinical-study index.
 - `docs/data-sources.md`: where science and product data come from, and why.
 
