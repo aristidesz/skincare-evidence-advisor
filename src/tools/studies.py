@@ -71,10 +71,10 @@ class Study:
 
 
 def build_query(ingredient: str, concern: Optional[str], clinical_only: bool) -> str:
-    """Europe PMC query: ingredient (and concern), PubMed records only."""
-    parts = [f'"{ingredient}"']
+    """Europe PMC query: ingredient (and concern) in title/abstract, PubMed records only."""
+    parts = [f'TITLE_ABS:"{ingredient}"']
     if concern:
-        parts.append(f'"{concern}"')
+        parts.append(f'TITLE_ABS:"{concern}"')
     parts.append("SRC:MED")
     if clinical_only:
         types = " OR ".join(f'PUB_TYPE:"{t}"' for t in CLINICAL_TYPES)

@@ -79,12 +79,12 @@ def test_search_studies_sends_query_and_limit():
     params = captured[0].url.params
     assert params["pageSize"] == "3"
     assert params["resultType"] == "core"
-    assert params["query"].startswith('"retinol" AND SRC:MED AND (')
+    assert params["query"].startswith('TITLE_ABS:"retinol" AND SRC:MED AND (')
 
 
 def test_build_query_without_clinical_filter():
     assert build_query("niacinamide", "acne", clinical_only=False) == (
-        '"niacinamide" AND "acne" AND SRC:MED'
+        'TITLE_ABS:"niacinamide" AND TITLE_ABS:"acne" AND SRC:MED'
     )
 
 
