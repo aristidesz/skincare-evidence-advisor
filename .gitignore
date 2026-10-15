@@ -136,3 +136,6 @@ dmypy.json
 notebooks/future_steps.ipynb
 
 data/
+
+# Claude Code personal instructions
+CLAUDE.local.md
