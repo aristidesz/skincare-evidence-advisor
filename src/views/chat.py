@@ -1,9 +1,10 @@
 import streamlit as st
 
-from src.models.responses import response_generator_llm, response_generator_rag
+from src.config import LLMSettings
+from src.models.responses import response_generator_llm
 
 
-def chat_view():
+def chat_view(settings: LLMSettings):
     """Chat app using Streamlit"""
 
     # Initialize chat history
@@ -25,12 +26,12 @@ def chat_view():
 
         # Display assistant response in chat message container
         with st.chat_message("assistant"):
-            # response = st.write_stream(response_generator())
-            flag_rag = True
-            if flag_rag:
-                response = response_generator_rag(st.session_state.messages)
-            else:
-                response = response_generator_llm(st.session_state.messages)
-            st.write(response)
+            try:
+                response = st.write_stream(
+                    response_generator_llm(st.session_state.messages, settings)
+                )
+            except Exception as error:
+                st.error(f"Could not reach {settings.base_url}: {error}")
+                return
         # Add assistant response to chat history
         st.session_state.messages.append({"role": "assistant", "content": response})
