@@ -2,7 +2,7 @@
 name = "streamlit_chat"
 version = "0.1.0"
 description = "A Streamlit chat application"
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 authors = [
     { name = "Aristides Zenonos", email = "aristideszenonos@gmail.com" }
 ]
@@ -14,11 +14,19 @@ dependencies = [
     "langchain-core>=0.3.51",
     "langchain-ollama>=0.3.1",
     "langsmith>=0.3.28",
+    "openai>=1.40.0",
     "pypdf>=5.4.0",
-    "streamlit",
+    "streamlit>=1.40.0",
 ]
 
 [project.optional-dependencies]
+# Only needed to build the vector store, not to run the app.
+ingest = [
+    "kagglehub>=0.3.12",
+    "pandas",
+    "rapidfuzz>=3.13.0",
+    "tqdm",
+]
 test = [
     "pytest",
     "coverage",
@@ -32,7 +40,7 @@ lint = [
     "bandit",
 ]
 dev = [
-    "streamlit_chat[test,lint]",
+    "streamlit_chat[ingest,test,lint]",
 ]
 
 [tool.black]

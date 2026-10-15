@@ -10,7 +10,6 @@ from langchain_ollama import OllamaEmbeddings
 from langchain_ollama.llms import OllamaLLM
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
-from src.models.fetch_documents import ARTICLE_SLUG, DATASET_SLUG, ArticleManager
 from src.models.utils import document_exists_by_hash, get_text_hash
 
 logging.basicConfig(level=logging.INFO)
@@ -167,6 +166,10 @@ class VectorStoreManager:
 
 
 if __name__ == "__main__":
+    # Ingestion-only dependencies (kagglehub, pandas, ...) are imported here so the
+    # app can use VectorStoreManager without installing them.
+    from src.models.fetch_documents import ARTICLE_SLUG, DATASET_SLUG, ArticleManager
+
     # Define a path for saving and loading the vector store
     vector_store_save_path = "./data/my_faiss_vector_store_v3"
 
@@ -204,10 +207,6 @@ if __name__ == "__main__":
     docs_to_add.extend(
         [
             vector_store_manager.create_document(
-                text="Aristides is 34 years old and his postcode is E15.",
-                metadata={"source": "personal-info-doc"},
-            ),
-            vector_store_manager.create_document(
                 text="The FAISS library allows for efficient similarity search.",
                 metadata={"source": "tech-doc"},
             ),
@@ -222,7 +221,7 @@ if __name__ == "__main__":
         print("No documents were prepared to be added to the vector store.")
 
     # Now, perform a query
-    query = "What is the age of Aristides and what is his postcode address?"
+    query = "What does FAISS allow?"
     response = vector_store_manager.generate_response(query)
     print(f"\nQuery: {query}")
     print(f"Response: {response}")

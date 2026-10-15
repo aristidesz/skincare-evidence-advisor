@@ -1,10 +1,16 @@
 import streamlit as st
 
+from src.config import load_llm_settings
 from src.views.chat import chat_view
 
-st.header("Simple Chat App")
-# st.title("Simple chat")
-# st.subheader("A simple chat app using Streamlit")
-# st.write("-")
+st.set_page_config(page_title="Skincare Advisor", page_icon="🧴")
+st.title("Skincare Advisor")
 
-chat_view()
+try:
+    settings = load_llm_settings()
+except ValueError as error:
+    st.error(str(error))
+    st.stop()
+
+st.caption(f"Model: {settings.model} via {settings.provider}")
+chat_view(settings)
