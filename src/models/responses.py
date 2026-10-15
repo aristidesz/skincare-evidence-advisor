@@ -70,7 +70,7 @@ def clean_llm_response(response: str) -> str:
     """
     Cleans the LLM response by removing leading 'AI:' and whitespace.
     """
-    return response.lstrip("AI:").strip()
+    return response.strip().removeprefix("AI:").strip()
 
 
 # --- Main Response Generators ---
