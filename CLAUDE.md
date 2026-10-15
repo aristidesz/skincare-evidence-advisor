@@ -26,15 +26,6 @@ After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14
 - `src/models/rag.py`, `vector_store.py`, `fetch_documents.py`: legacy Wikipedia RAG. Unused, and due to be replaced by the clinical-study index.
 - `docs/data-sources.md`: where science and product data come from, and why.
 
-## How we work
-
-- **Teach before build.** Before each step, give a short lesson (what, why, how) tied to agent concepts, then ask one check question and wait for the answer. Then build.
-- **One concept per PR**, small enough to read in minutes. Agree on the scope before writing it.
-- Branch from `dev` and open PRs into `dev`. `main` is for releases only. Never push to `dev` or `main` directly. The owner reviews and merges.
-- PR descriptions open with **Before:** and **After:** paragraphs, then show before/after code for each change and how to check it.
-- No Claude session or project links in PR descriptions or commit messages.
-- Tests mock the network (`httpx.MockTransport`, mocked OpenAI client, Streamlit `AppTest`).
-
 ## Design decisions
 
 - **Own harness, no agent framework yet.** The loop is built by hand on the `openai` client, so every line can be explained. Open-source libraries are used around it (Streamlit, MCP SDK, Langfuse later). Porting to a framework such as LangGraph comes later, as a comparison.
