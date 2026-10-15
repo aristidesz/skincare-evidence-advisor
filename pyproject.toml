@@ -19,6 +19,13 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+# Only needed to build the vector store, not to run the app.
+ingest = [
+    "kagglehub>=0.3.12",
+    "pandas",
+    "rapidfuzz>=3.13.0",
+    "tqdm",
+]
 test = [
     "pytest",
     "coverage",
@@ -32,7 +39,7 @@ lint = [
     "bandit",
 ]
 dev = [
-    "streamlit_chat[test,lint]",
+    "streamlit_chat[ingest,test,lint]",
 ]
 
 [tool.black]
