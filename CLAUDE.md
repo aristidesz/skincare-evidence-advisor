@@ -11,6 +11,7 @@ uv run streamlit run streamlit_app.py         # run the app
 uv run pytest -m "not e2e"                    # tests (CI runs the same)
 uv run black --check . && uv run flake8 tests # lint (CI runs the same)
 uv run python -m src.tools.studies niacinamide acne   # try the study search live
+deploy/huggingface/deploy.sh <hf-user>/<space>        # deploy the public MCP server
 ```
 
 After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14 uv lock`. The lock is in format revision 1, and newer uv rewrites the whole file.
@@ -23,6 +24,8 @@ After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14
 - `src/models/responses.py`: system prompt + `build_messages` + `response_generator_llm`.
 - `src/views/chat.py`: the chat UI (history in `st.session_state`, one reply per user message).
 - `src/tools/studies.py`: `search_studies` on Europe PMC plus its tool schema `SEARCH_STUDIES_TOOL`. Not yet called by the model.
+- `src/mcp_server.py`: the same tool as an MCP server (stdio locally, Streamable HTTP when `MCP_TRANSPORT=streamable-http`). Pinned to `mcp<2`: 2.x drags Streamlit and LangChain up a major version.
+- `deploy/huggingface/`: Dockerfile, Space card and deploy script for the public Hugging Face Space.
 - `src/models/rag.py`, `vector_store.py`, `fetch_documents.py`: legacy Wikipedia RAG. Unused, and due to be replaced by the clinical-study index.
 - `docs/data-sources.md`: where science and product data come from, and why.
 
@@ -40,6 +43,7 @@ Done:
 - [x] Model layer (Ollama/OpenRouter)
 - [x] Chat bug fixes
 - [x] `search_studies` tool
+- [x] MCP server for `search_studies`, deployable to a Hugging Face Space
 
 Next:
 - [ ] **Tool-calling loop:** the model decides to call `search_studies`. Show the tool calls, and set step and context budgets.
@@ -48,7 +52,7 @@ Next:
 - [ ] Graded evidence index for about 15 core actives, with citations
 - [ ] Open Beauty Facts product lookup
 - [ ] Guardrails, product cards with affiliate disclosure
-- [ ] Evals in CI, Langfuse tracing, deploy (Streamlit Community Cloud), MCP server
+- [ ] Evals in CI, Langfuse tracing, deploy (Streamlit Community Cloud)
 
 Known gaps in `search_studies`:
 - no synonyms yet (niacinamide vs nicotinamide);
