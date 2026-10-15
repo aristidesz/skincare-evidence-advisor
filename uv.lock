@@ -3831,6 +3831,7 @@ source = { virtual = "." }
 dependencies = [
     { name = "cryptography" },
     { name = "faiss-cpu" },
+    { name = "httpx" },
     { name = "langchain" },
     { name = "langchain-community" },
     { name = "langchain-core" },
@@ -3896,6 +3897,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=44.0.2" },
     { name = "faiss-cpu", specifier = ">=1.10.0" },
     { name = "flake8", marker = "extra == 'lint'" },
+    { name = "httpx", specifier = ">=0.27" },
     { name = "isort", marker = "extra == 'lint'" },
     { name = "kagglehub", marker = "extra == 'ingest'", specifier = ">=0.3.12" },
     { name = "langchain", specifier = ">=0.3.23" },
