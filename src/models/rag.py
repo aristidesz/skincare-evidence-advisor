@@ -24,7 +24,6 @@ def get_response_from_rag(query_topic: str):
     vector_store_manager = VectorStoreManager(
         save_path=vector_store_save_path, embedding_model="nomic-embed-text"
     )
-    # query = "What is the age of Aristides and what is his postcode address?"
     last_question = get_nth_from_last_ai_user_prompt(query_topic)
     retrieve_context = vector_store_manager.retrieve_context(last_question, k=1)
     # Format the input for the LLM

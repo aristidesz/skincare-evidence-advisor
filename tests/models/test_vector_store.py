@@ -71,5 +71,5 @@ def test_generate_response_llm_mocked():
         manager.similarity_search = MagicMock(
             return_value=[Document(page_content="Some context", metadata={})]
         )
-        response = manager.generate_response("What is the age of Aristides?")
+        response = manager.generate_response("What does the FAISS library allow?")
         assert response == "Mocked LLM response"
