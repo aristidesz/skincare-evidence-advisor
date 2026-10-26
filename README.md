@@ -35,6 +35,10 @@ uv run streamlit run streamlit_app.py
 
 The app uses `gemma4:12b` on Ollama by default. To use OpenRouter or another model, copy `.env.example` to `.env`, set `LLM_PROVIDER`, `OPENROUTER_API_KEY` or `OLLAMA_MODEL`, and run `uv run --env-file .env streamlit run streamlit_app.py`.
 
+## MCP server
+
+`search_studies` is also an MCP server, built and run with Docker: `scripts/docker.sh mcp-server build`, then `run`. See [docs/mcp-server.md](docs/mcp-server.md) for the curl commands and cleanup.
+
 ## Tests
 
 ```sh

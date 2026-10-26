@@ -11,6 +11,8 @@ uv run streamlit run streamlit_app.py         # run the app
 uv run pytest -m "not e2e"                    # tests (CI runs the same)
 uv run black --check . && uv run flake8 tests # lint (CI runs the same)
 uv run python -m src.tools.studies niacinamide acne   # try the study search live
+scripts/docker.sh mcp-server build|run                # build or run a service image
+scripts/docker.sh clean                               # remove leftover images and old build cache
 ```
 
 After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14 uv lock`. The lock is in format revision 1, and newer uv rewrites the whole file.
@@ -24,8 +26,10 @@ After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14
 - `src/views/chat.py`: the chat UI (history in `st.session_state`, one reply per user message).
 - `src/tools/studies.py`: `search_studies` on Europe PMC plus its tool schema `SEARCH_STUDIES_TOOL`. Not yet called by the model.
 - `src/mcp_server.py`: the same tool as an MCP server (`mcp` 2.x, Streamable HTTP on port 7860, stateless).
+- `services/<name>/Dockerfile`: one folder per deployable service (today only `mcp-server`). Build context is the repo root; `scripts/docker.sh` builds and runs them.
 - `src/models/rag.py`, `vector_store.py`, `fetch_documents.py`: legacy Wikipedia RAG. Unused, and due to be replaced by the clinical-study index.
 - `docs/data-sources.md`: where science and product data come from, and why.
+- `docs/mcp-server.md`: build, run and curl the MCP server; Docker cleanup.
 
 ## Design decisions
 
