@@ -22,9 +22,10 @@ STUDY = Study(
 
 
 @pytest.fixture(autouse=True)
-def _empty_cache():
-    # The cache is module-level: start every test with nothing remembered.
+def _fresh_state(monkeypatch):
+    # The cache and the rate limit are module-level: start every test with neither used.
     server._cached_search.cache_clear()
+    monkeypatch.setattr(server, "_searches", server._RateLimit(30, 60))
 
 
 def _ask(*arguments):
@@ -187,3 +188,46 @@ def test_quarter_is_the_calendar_quarter(monkeypatch, month, expected):
     monkeypatch.setattr(server, "datetime", FakeDatetime)
 
     assert server._quarter() == f"2026-{expected}"
+
+
+def test_rate_limit_allows_a_burst_then_refuses_until_the_window_slides():
+    now = {"t": 0.0}
+    limit = server._RateLimit(2, 60, clock=lambda: now["t"])
+
+    assert [limit.allow(), limit.allow(), limit.allow()] == [True, True, False]
+    now["t"] = 59.9
+    assert limit.allow() is False
+    now["t"] = 60.0
+    assert limit.allow() is True  # the first two calls have left the window
+
+
+def test_only_new_searches_use_the_rate_limit_and_a_refusal_is_not_cached(monkeypatch):
+    now = {"t": 0.0}
+    monkeypatch.setattr(
+        server, "_searches", server._RateLimit(2, 60, clock=lambda: now["t"])
+    )
+    calls = []
+    monkeypatch.setattr(
+        server, "search_studies", lambda *args: calls.append(args) or [STUDY]
+    )
+
+    first, repeat, second, refused = _ask(
+        {"ingredient": "retinol"},
+        {"ingredient": "retinol"},  # remembered, so it uses no slot
+        {"ingredient": "niacinamide"},
+        {"ingredient": "vitamin c"},  # a third new question: over the limit
+    )
+
+    assert [r.is_error for r in (first, repeat, second, refused)] == [
+        False,
+        False,
+        False,
+        True,
+    ]
+    assert "Too many searches" in refused.content[0].text
+    assert len(calls) == 2  # the refused question never reached Europe PMC
+
+    now["t"] = 60.0
+    (retried,) = _ask({"ingredient": "vitamin c"})
+    assert not retried.is_error  # the refusal was not remembered
+    assert len(calls) == 3
