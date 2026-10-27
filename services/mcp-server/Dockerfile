@@ -1,9 +1,9 @@
-# The MCP server image (src/mcp_server.py), as run by the Hugging Face Space.
+# The MCP server image (src/mcp_server.py), built by scripts/docker.sh and by Render.
 # Build context is the repo root. Use: scripts/docker.sh mcp-server build
 FROM python:3.11-slim
 COPY --from=ghcr.io/astral-sh/uv:0.6.14 /uv /bin/uv
 
-# Hugging Face runs containers as user 1000.
+# Run as a non-root user.
 RUN useradd -m -u 1000 user
 USER user
 WORKDIR /home/user/app

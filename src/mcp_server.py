@@ -1,6 +1,6 @@
 """MCP server exposing search_studies, so any MCP host (Claude, Cursor, ...) can call it.
 
-Serves Streamable HTTP at http://0.0.0.0:7860/mcp (7860 is the Hugging Face Spaces port):
+Serves Streamable HTTP at http://0.0.0.0:7860/mcp (on Render, render.yaml sets PORT=7860 to match):
     uv run python -m src.mcp_server
 """
 
