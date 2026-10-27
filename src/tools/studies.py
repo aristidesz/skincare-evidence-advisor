@@ -70,9 +70,18 @@ class Study:
     cited_by: int
 
 
+def _phrase(text: str) -> str:
+    """Drop the characters that could end a quoted phrase early or escape out of it."""
+    return re.sub(r'["\\]', "", text).strip()
+
+
 def build_query(ingredient: str, concern: Optional[str], clinical_only: bool) -> str:
     """Europe PMC query: ingredient (and concern) in title/abstract, PubMed records only."""
+    ingredient = _phrase(ingredient)
+    if not ingredient:
+        raise ValueError("ingredient is empty")
     parts = [f'TITLE_ABS:"{ingredient}"']
+    concern = _phrase(concern or "")
     if concern:
         parts.append(f'TITLE_ABS:"{concern}"')
     parts.append("SRC:MED")

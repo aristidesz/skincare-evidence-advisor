@@ -1,6 +1,7 @@
 import json
 
 import httpx
+import pytest
 
 from src.tools.studies import (
     SEARCH_STUDIES_TOOL,
@@ -85,6 +86,20 @@ def test_search_studies_sends_query_and_limit():
 def test_build_query_without_clinical_filter():
     assert build_query("niacinamide", "acne", clinical_only=False) == (
         'TITLE_ABS:"niacinamide" AND TITLE_ABS:"acne" AND SRC:MED'
+    )
+
+
+def test_build_query_cannot_be_broken_out_of():
+    # A quote or backslash in the input must not end the phrase and add query clauses.
+    query = build_query('retinol" OR SRC:"PMC', 'acne\\"', clinical_only=False)
+    assert query == 'TITLE_ABS:"retinol OR SRC:PMC" AND TITLE_ABS:"acne" AND SRC:MED'
+
+
+def test_build_query_rejects_an_empty_ingredient_and_drops_an_empty_concern():
+    with pytest.raises(ValueError):
+        build_query('" "', None, clinical_only=False)
+    assert build_query("retinol", '"', clinical_only=False) == (
+        'TITLE_ABS:"retinol" AND SRC:MED'
     )
 
 
