@@ -5,6 +5,7 @@ import pytest
 
 from src.tools.studies import (
     SEARCH_STUDIES_TOOL,
+    StudySearchError,
     as_tool_result,
     build_query,
     clean_abstract,
@@ -81,6 +82,31 @@ def test_search_studies_sends_query_and_limit():
     assert params["pageSize"] == "3"
     assert params["resultType"] == "core"
     assert params["query"].startswith('TITLE_ABS:"retinol" AND SRC:MED AND (')
+
+
+def _upstream_503(request):
+    return httpx.Response(503, text="Search service is temporarily unavailable")
+
+
+def _upstream_timeout(request):
+    raise httpx.ConnectTimeout("timed out", request=request)
+
+
+def _upstream_html_page(request):
+    return httpx.Response(200, text="<html>maintenance</html>")
+
+
+@pytest.mark.parametrize(
+    "handler", [_upstream_503, _upstream_timeout, _upstream_html_page]
+)
+def test_search_studies_turns_upstream_failures_into_a_safe_error(handler):
+    client = httpx.Client(transport=httpx.MockTransport(handler))
+    with pytest.raises(StudySearchError) as caught:
+        search_studies("niacinamide", client=client)
+
+    message = str(caught.value)
+    assert "temporarily unavailable" in message
+    assert "ebi.ac.uk" not in message and "503" not in message  # nothing internal leaks
 
 
 def test_build_query_without_clinical_filter():
