@@ -60,7 +60,9 @@ To read the reply as JSON, add this to either command:
 `services/mcp-server/Dockerfile`, on Render's machines, from the `dev` branch. Every merge to `dev`
 redeploys it. The server listens on 7860 and the Blueprint sets `PORT=7860`, so Render forwards there.
 
-One-time setup:
+The public instance is `https://skincare-evidence-mcp.onrender.com/mcp`.
+
+One-time setup (to deploy your own copy):
 
 1. Create an account at render.com (signing in with GitHub is easiest) and let it read this repo.
 2. Dashboard, then New, then **Blueprint**: pick the repo and the `dev` branch, then Apply.
@@ -69,10 +71,10 @@ One-time setup:
 3. Watch the deploy log until the service is **Live**. Its URL is on the service page:
    `https://<service>.onrender.com`.
 
-Then use that URL instead of localhost:
+Then use the URL instead of localhost (for your own copy, the one on its service page):
 
 ```sh
-MCP_URL=https://<service>.onrender.com/mcp
+MCP_URL=https://skincare-evidence-mcp.onrender.com/mcp
 curl -s -X POST $MCP_URL \
   -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
   -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'

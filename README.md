@@ -37,7 +37,13 @@ The app uses `gemma4:12b` on Ollama by default. To use OpenRouter or another mod
 
 ## MCP server
 
-`search_studies` is also an MCP server, built and run with Docker: `scripts/docker.sh mcp-server build`, then `run`. See [docs/mcp-server.md](docs/mcp-server.md) for the curl commands and cleanup.
+`search_studies` is also an MCP server. A public instance runs on Render's free tier, so the first request after a pause can take about a minute:
+
+```sh
+claude mcp add --transport http skincare-evidence https://skincare-evidence-mcp.onrender.com/mcp
+```
+
+To build and run it yourself with Docker: `scripts/docker.sh mcp-server build`, then `run`. See [docs/mcp-server.md](docs/mcp-server.md) for the curl commands, the limits and cleanup.
 
 ## Tests
 
