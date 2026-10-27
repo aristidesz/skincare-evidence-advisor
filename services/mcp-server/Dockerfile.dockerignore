@@ -1,0 +1,8 @@
+# Allowlist: send Docker only what this image needs. BuildKit reads this file
+# (named after the Dockerfile) instead of a repo-root .dockerignore.
+*
+!pyproject.toml
+!uv.lock
+!src/tools/
+!src/mcp_server.py
+**/__pycache__

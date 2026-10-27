@@ -82,6 +82,8 @@ exclude_lines = [
 minversion = "6.0"
 
 [dependency-groups]
+# Only what the MCP server image installs (see Dockerfile); versions come from uv.lock.
+server = ["mcp>=2.3,<3", "httpx>=0.27"]
 dev = [
     "fuzzywuzzy>=0.18.0",
     "ipykernel>=6.29.5",
