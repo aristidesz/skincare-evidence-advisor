@@ -15,6 +15,10 @@ import httpx
 
 EUROPE_PMC_SEARCH_URL = "https://www.ebi.ac.uk/europepmc/webservices/rest/search"
 
+# Say who is calling, with a contact link, instead of the anonymous "python-httpx".
+# No version on purpose: it is not reliably installed metadata inside the Docker image.
+USER_AGENT = "skincare-evidence-advisor (+https://github.com/aristidesz/skincare-evidence-advisor)"
+
 
 class StudySearchError(Exception):
     """Europe PMC could not be reached or answered badly. The message is safe to show."""
@@ -151,12 +155,15 @@ def search_studies(
         "resultType": "core",
         "pageSize": limit,
     }
+    headers = {"User-Agent": USER_AGENT}
     try:
         if client is None:
             with httpx.Client(timeout=10) as own_client:
-                response = own_client.get(EUROPE_PMC_SEARCH_URL, params=params)
+                response = own_client.get(
+                    EUROPE_PMC_SEARCH_URL, params=params, headers=headers
+                )
         else:
-            response = client.get(EUROPE_PMC_SEARCH_URL, params=params)
+            response = client.get(EUROPE_PMC_SEARCH_URL, params=params, headers=headers)
         response.raise_for_status()
         results = response.json().get("resultList", {}).get("result", [])
     except (httpx.HTTPError, ValueError) as error:  # ValueError: a non-JSON reply
