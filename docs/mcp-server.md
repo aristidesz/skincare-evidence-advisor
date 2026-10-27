@@ -54,6 +54,37 @@ To read the reply as JSON, add this to either command:
 ... | sed -n 's/^data: //p' | python3 -m json.tool
 ```
 
+## Deploy to Render
+
+[render.yaml](../render.yaml) is a Render Blueprint: a free Docker web service built from the same
+`services/mcp-server/Dockerfile`, on Render's machines, from the `dev` branch. Every merge to `dev`
+redeploys it. The server listens on 7860 and the Blueprint sets `PORT=7860`, so Render forwards there.
+
+One-time setup:
+
+1. Create an account at render.com (signing in with GitHub is easiest) and let it read this repo.
+2. Dashboard, then New, then **Blueprint**: pick the repo and the `dev` branch, then Apply.
+   If Render asks for a card, it is normally a small verification hold; the plan is `free`, so
+   there should be no charge.
+3. Watch the deploy log until the service is **Live**. Its URL is on the service page:
+   `https://<service>.onrender.com`.
+
+Then use that URL instead of localhost:
+
+```sh
+MCP_URL=https://<service>.onrender.com/mcp
+curl -s -X POST $MCP_URL \
+  -H 'Content-Type: application/json' -H 'Accept: application/json, text/event-stream' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"tools/list"}'
+
+claude mcp add --transport http skincare-evidence $MCP_URL   # then ask Claude about an ingredient
+```
+
+Free-tier behaviour ([Render docs](https://render.com/docs/free)): the service sleeps after 15 minutes
+without requests and takes about a minute to wake, so the first request after a pause can be slow or
+time out; retry it. There are 750 instance hours a month, and the filesystem is wiped on every restart.
+The endpoint has no authentication and no rate limit yet.
+
 ## When it does not work
 
 | What you see | Cause |
@@ -61,4 +92,5 @@ To read the reply as JSON, add this to either command:
 | `Connection refused` | The container is not running, or the port is mapped differently. |
 | `port is already allocated` on run | An earlier container still holds 7860. Stop it with `docker ps`, then `docker stop <id>`. |
 | `curl` never returns | A GET (no `-X POST`) opens an event stream that never closes. Ctrl+C. |
+| Render deploy fails because it finds no open port | `PORT` in `render.yaml` does not match the port in `src/mcp_server.py` (7860). |
 | `isError: true` | The tool ran and failed, for example Europe PMC was unreachable. Read the `content` text. |

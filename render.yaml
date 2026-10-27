@@ -1,0 +1,13 @@
+# Render Blueprint for the public MCP server. See docs/mcp-server.md ("Deploy to Render").
+services:
+  - type: web
+    name: skincare-evidence-mcp
+    runtime: docker
+    plan: free # without this, a Blueprint defaults to a paid plan
+    dockerfilePath: ./services/mcp-server/Dockerfile
+    dockerContext: ./ # the repo root, as in scripts/docker.sh
+    branch: dev
+    autoDeployTrigger: commit # every merge to dev redeploys
+    envVars:
+      - key: PORT # Render forwards traffic here; our server listens on 7860
+        value: "7860"

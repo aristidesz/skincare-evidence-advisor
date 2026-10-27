@@ -28,6 +28,7 @@ After changing dependencies, regenerate the lockfile with `uvx --from uv==0.6.14
 - `src/mcp_server.py`: the same tool as an MCP server (`mcp` 2.x, Streamable HTTP on port 7860, stateless).
 - `services/<name>/Dockerfile`: one folder per deployable service (today only `mcp-server`). Build context is the repo root; `scripts/docker.sh` builds and runs them.
 - `src/models/rag.py`, `vector_store.py`, `fetch_documents.py`: legacy Wikipedia RAG. Unused, and due to be replaced by the clinical-study index.
+- `render.yaml`: Render Blueprint for the public MCP server (free Docker web service, tracks `dev`).
 - `docs/data-sources.md`: where science and product data come from, and why.
 - `docs/mcp-server.md`: build, run and curl the MCP server; Docker cleanup.
 
