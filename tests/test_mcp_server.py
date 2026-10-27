@@ -46,3 +46,35 @@ def test_mcp_server_lists_and_calls_search_studies(monkeypatch):
     assert not result.is_error
     assert calls == [("niacinamide", "acne")]
     assert result.structured_content["result"][0]["pmid"] == "11111111"
+
+
+def test_mcp_server_rejects_oversized_input_before_searching(monkeypatch):
+    calls = []
+    monkeypatch.setattr(
+        server, "search_studies", lambda *args: calls.append(args) or [STUDY]
+    )
+    too_long = "x" * (server.MAX_INPUT_CHARS + 1)
+
+    async def run():
+        async with Client(server.mcp) as client:
+            props = (await client.list_tools()).tools[0].input_schema["properties"]
+            rejected = [
+                await client.call_tool("search_studies", args)
+                for args in (
+                    {"ingredient": "a"},
+                    {"ingredient": too_long},
+                    {"ingredient": "retinol", "concern": too_long},
+                )
+            ]
+            allowed = await client.call_tool(
+                "search_studies", {"ingredient": "retinol", "concern": ""}
+            )
+            return props, rejected, allowed
+
+    props, rejected, allowed = anyio.run(run)
+
+    assert props["ingredient"]["minLength"] == 2
+    assert props["ingredient"]["maxLength"] == server.MAX_INPUT_CHARS
+    assert all(result.is_error for result in rejected)
+    assert not allowed.is_error
+    assert calls == [("retinol", "")]  # only the valid call reached the search

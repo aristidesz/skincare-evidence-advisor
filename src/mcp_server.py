@@ -15,6 +15,10 @@ from src.tools.studies import SEARCH_STUDIES_TOOL, Study, search_studies
 _SCHEMA = SEARCH_STUDIES_TOOL["function"]
 _PARAMS = _SCHEMA["parameters"]["properties"]
 
+# The endpoint is public: reject oversized input before it reaches Europe PMC.
+# Generous on purpose: "Bis-Ethylhexyloxyphenol Methoxyphenyl Triazine" is 46 characters.
+MAX_INPUT_CHARS = 80
+
 mcp = MCPServer("skincare-evidence")
 
 
@@ -22,9 +26,19 @@ mcp = MCPServer("skincare-evidence")
 # blocking Europe PMC call does not stall other clients on the event loop.
 @mcp.tool(name=_SCHEMA["name"], description=_SCHEMA["description"])
 def search_studies_tool(
-    ingredient: Annotated[str, Field(description=_PARAMS["ingredient"]["description"])],
+    ingredient: Annotated[
+        str,
+        Field(
+            description=_PARAMS["ingredient"]["description"],
+            min_length=2,
+            max_length=MAX_INPUT_CHARS,
+        ),
+    ],
     concern: Annotated[
-        Optional[str], Field(description=_PARAMS["concern"]["description"])
+        Optional[str],
+        Field(
+            description=_PARAMS["concern"]["description"], max_length=MAX_INPUT_CHARS
+        ),
     ] = None,
 ) -> List[Study]:
     return search_studies(ingredient, concern)
