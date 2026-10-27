@@ -84,7 +84,8 @@ Free-tier behaviour ([Render docs](https://render.com/docs/free)): the service s
 without requests and takes about a minute to wake, so the first request after a pause can be slow or
 time out; retry it. There are 750 instance hours a month, and the filesystem is wiped on every restart.
 Search results are cached in memory per calendar quarter (an empty cache after a sleep or redeploy is
-normal), and a failed search is never cached. The endpoint has no authentication and no rate limit yet.
+normal), and a failed search is never cached. New (uncached) searches are capped at 30 a minute across all callers, so a busy minute can answer
+"Too many searches right now" while questions asked before still work. The endpoint has no authentication.
 
 ## When it does not work
 
@@ -94,4 +95,5 @@ normal), and a failed search is never cached. The endpoint has no authentication
 | `port is already allocated` on run | An earlier container still holds 7860. Stop it with `docker ps`, then `docker stop <id>`. |
 | `curl` never returns | A GET (no `-X POST`) opens an event stream that never closes. Ctrl+C. |
 | Render deploy fails because it finds no open port | `PORT` in `render.yaml` does not match the port in `src/mcp_server.py` (7860). |
+| `Too many searches right now` | The cap of 30 new Europe PMC searches a minute was reached. Wait a minute; repeated questions are still answered from the cache. |
 | `isError: true` | The tool ran and failed, for example Europe PMC was unreachable. Read the `content` text. |
