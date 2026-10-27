@@ -4,7 +4,9 @@ Serves Streamable HTTP at http://0.0.0.0:7860/mcp (on Render, render.yaml sets P
     uv run python -m src.mcp_server
 """
 
-from typing import Annotated, List, Optional
+from datetime import datetime, timezone
+from functools import lru_cache
+from typing import Annotated, List, Optional, Tuple
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -28,6 +30,24 @@ MAX_INPUT_CHARS = 80
 mcp = MCPServer("skincare-evidence")
 
 
+def _quarter() -> str:
+    """The calendar quarter (UTC), such as "2026-Q4"."""
+    now = datetime.now(timezone.utc)
+    return f"{now.year}-Q{(now.month - 1) // 3 + 1}"
+
+
+# Repeated questions skip Europe PMC. In memory only, so it empties when the free
+# Render service sleeps or redeploys. lru_cache never stores an exception, so a
+# failed search is simply tried again. `quarter` is only here to be part of the
+# key: an entry is never reused in a later quarter, so results are refreshed.
+# ponytail: no per-entry clock or byte limit; add a TTL if staleness or memory matters.
+@lru_cache(maxsize=256)
+def _cached_search(
+    ingredient: str, concern: Optional[str], quarter: str
+) -> Tuple[Study, ...]:
+    return tuple(search_studies(ingredient, concern))
+
+
 # A plain def on purpose: mcp 2.x runs sync tools in a worker thread, so the
 # blocking Europe PMC call does not stall other clients on the event loop.
 @mcp.tool(name=_SCHEMA["name"], description=_SCHEMA["description"])
@@ -47,8 +67,11 @@ def search_studies_tool(
         ),
     ] = None,
 ) -> List[Study]:
+    # Normalise first, so "Niacinamide " and "niacinamide" share one cache entry.
+    ingredient = ingredient.strip().lower()
+    concern = (concern or "").strip().lower() or None
     try:
-        return search_studies(ingredient, concern)
+        return list(_cached_search(ingredient, concern, _quarter()))
     except StudySearchError as error:
         # A ToolError keeps its message for the caller; any other exception would
         # reach them as just "Error executing tool search_studies".
