@@ -83,7 +83,8 @@ claude mcp add --transport http skincare-evidence $MCP_URL   # then ask Claude a
 Free-tier behaviour ([Render docs](https://render.com/docs/free)): the service sleeps after 15 minutes
 without requests and takes about a minute to wake, so the first request after a pause can be slow or
 time out; retry it. There are 750 instance hours a month, and the filesystem is wiped on every restart.
-The endpoint has no authentication and no rate limit yet.
+Search results are cached in memory per calendar quarter (an empty cache after a sleep or redeploy is
+normal), and a failed search is never cached. The endpoint has no authentication and no rate limit yet.
 
 ## When it does not work
 
