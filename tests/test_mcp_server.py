@@ -2,7 +2,7 @@ import anyio
 from mcp import Client
 
 import src.mcp_server as server
-from src.tools.studies import Study
+from src.tools.studies import Study, StudySearchError
 
 STUDY = Study(
     title="Topical niacinamide for acne: a randomized trial.",
@@ -46,6 +46,22 @@ def test_mcp_server_lists_and_calls_search_studies(monkeypatch):
     assert not result.is_error
     assert calls == [("niacinamide", "acne")]
     assert result.structured_content["result"][0]["pmid"] == "11111111"
+
+
+def test_mcp_server_tells_the_caller_why_a_search_failed(monkeypatch):
+    def failing_search(ingredient, concern=None):
+        raise StudySearchError("Europe PMC is temporarily unavailable. Try again.")
+
+    monkeypatch.setattr(server, "search_studies", failing_search)
+
+    async def run():
+        async with Client(server.mcp) as client:
+            return await client.call_tool("search_studies", {"ingredient": "retinol"})
+
+    result = anyio.run(run)
+
+    assert result.is_error
+    assert "temporarily unavailable" in result.content[0].text
 
 
 def test_mcp_server_rejects_oversized_input_before_searching(monkeypatch):
