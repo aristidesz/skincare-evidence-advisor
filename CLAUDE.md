@@ -48,7 +48,7 @@ Done:
 - [x] `search_studies` tool
 
 Next:
-- [ ] **Tool-calling loop:** the model decides to call `search_studies`. Show the tool calls, and set step and context budgets.
+- [ ] **Tool-calling loop:** the model decides to call `search_studies`. Show the tool calls, and set step and context budgets. When `search_studies` raises `StudySearchError`, show a warning in the chat and tell the model it cannot answer from memory as if it were evidence.
 - [ ] Skincare system prompt and context budget (sliding window, trimmed tool results)
 - [ ] INCI ingredient-list parser (above 1% in descending order, the rest in any order)
 - [ ] Graded evidence index for about 15 core actives, with citations
