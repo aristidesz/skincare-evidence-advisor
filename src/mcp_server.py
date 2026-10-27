@@ -4,9 +4,12 @@ Serves Streamable HTTP at http://0.0.0.0:7860/mcp (on Render, render.yaml sets P
     uv run python -m src.mcp_server
 """
 
+import threading
+import time
+from collections import deque
 from datetime import datetime, timezone
 from functools import lru_cache
-from typing import Annotated, List, Optional, Tuple
+from typing import Annotated, Callable, Deque, List, Optional, Tuple
 
 from mcp.server.mcpserver import MCPServer
 from mcp.server.mcpserver.exceptions import ToolError
@@ -30,6 +33,39 @@ MAX_INPUT_CHARS = 80
 mcp = MCPServer("skincare-evidence")
 
 
+class _RateLimit:
+    """At most `max_calls` per `per_seconds`, counted across all callers (a sliding window)."""
+
+    def __init__(
+        self,
+        max_calls: int,
+        per_seconds: float,
+        clock: Callable[[], float] = time.monotonic,
+    ) -> None:
+        self._max_calls = max_calls
+        self._per_seconds = per_seconds
+        self._clock = clock
+        self._calls: Deque[float] = deque()
+        self._lock = threading.Lock()  # the SDK runs the tool in worker threads
+
+    def allow(self) -> bool:
+        now = self._clock()
+        with self._lock:
+            while self._calls and now - self._calls[0] >= self._per_seconds:
+                self._calls.popleft()
+            if len(self._calls) >= self._max_calls:
+                return False
+            self._calls.append(now)
+            return True
+
+
+# New (uncached) Europe PMC searches. My own conservative choice: Europe PMC publishes no
+# number, and EMBL-EBI's terms only say use that stops it serving others gets you blocked.
+# ponytail: one global budget, so one caller can use it all for a minute (cached questions
+# still work); a per-caller limit needs the caller's address from Render's forwarding header.
+_searches = _RateLimit(max_calls=30, per_seconds=60)
+
+
 def _quarter() -> str:
     """The calendar quarter (UTC), such as "2026-Q4"."""
     now = datetime.now(timezone.utc)
@@ -38,13 +74,16 @@ def _quarter() -> str:
 
 # Repeated questions skip Europe PMC. In memory only, so it empties when the free
 # Render service sleeps or redeploys. lru_cache never stores an exception, so a
-# failed search is simply tried again. `quarter` is only here to be part of the
-# key: an entry is never reused in a later quarter, so results are refreshed.
+# failed or refused search is simply tried again. `quarter` is only here to be part
+# of the key: an entry is never reused in a later quarter, so results are refreshed.
+# The rate limit sits inside the cache, so only real Europe PMC calls use a slot.
 # ponytail: no per-entry clock or byte limit; add a TTL if staleness or memory matters.
 @lru_cache(maxsize=256)
 def _cached_search(
     ingredient: str, concern: Optional[str], quarter: str
 ) -> Tuple[Study, ...]:
+    if not _searches.allow():  # a failed attempt still counts: it still hit Europe PMC
+        raise ToolError("Too many searches right now. Try again in a minute.")
     return tuple(search_studies(ingredient, concern))
 
 
