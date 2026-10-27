@@ -84,6 +84,15 @@ def test_search_studies_sends_query_and_limit():
     assert params["query"].startswith('TITLE_ABS:"retinol" AND SRC:MED AND (')
 
 
+def test_search_studies_identifies_itself_to_europe_pmc():
+    captured = []
+    search_studies("retinol", client=_client(captured))
+
+    user_agent = captured[0].headers["user-agent"]
+    assert user_agent.startswith("skincare-evidence-advisor")
+    assert "github.com/aristidesz/skincare-evidence-advisor" in user_agent  # a contact
+
+
 def _upstream_503(request):
     return httpx.Response(503, text="Search service is temporarily unavailable")
 
